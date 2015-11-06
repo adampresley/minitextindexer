@@ -40,8 +40,6 @@ func main() {
 
 	catalog := catalog.NewCatalog(log, configuration)
 	catalog.Index()
-	//log.Info(catalog.ToJSON())
-	//catalog.DisplayTree()
 
 	appContext := &middleware.AppContext{
 		Catalog: catalog,
