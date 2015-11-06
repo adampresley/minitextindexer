@@ -1,5 +1,5 @@
-Mini Text Indexer Requirements
-==============================
+Mini Text Indexer
+=================
 
 Description
 -----------
