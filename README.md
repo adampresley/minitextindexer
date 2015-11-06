@@ -89,7 +89,55 @@ Mini Text Indexer provides an HTTP interface to perform searches against the ind
 ### Search
 
 #### GET /search?term=[searchTerm]
-Performs a search against the index tree. This will return a structure of a tree node that matches the specified search term.
+Performs a search against the index tree. This will return an array of terms that matches the specified search term.
+
+The matching tree node contains a key which is the match to the provided search term. It then has an array of documents where the term is found. Each document has a name, followed by an array of match locations. Each location has the matched text, captured groups from the regular expression, and the starting location of the text in the file.
+
+##### Parameters
+* **term** - Term to search for
+
+##### Response
+```json
+[
+	{
+		"key": "contentDiv",
+		"documents": [
+			{
+				"documentName": "HomeController.js",
+				"matches": [
+					{
+						"location": 100,
+						"match": "$(\"#contentDiv\")",
+						"captures": [
+							"contentDiv"
+						]
+					}
+				]
+			}
+		]
+	},
+	{
+		"key": "contentDivabc",
+		"documents": [
+			{
+				"documentName": "TestController.js",
+				"matches": [
+					{
+						"location": 10,
+						"match": "$(\"#contentDivabc\")",
+						"captures": [
+							"contentDivabc"
+						]
+					}
+				]
+			}
+		]
+	}
+]
+```
+
+#### GET /getterm?term=[searchTerm]
+Performs a search against the index tree. This will return a specific term that matches the specified search term.
 
 The matching tree node contains a key which is the match to the provided search term. It then has an array of documents where the term is found. Each document has a name, followed by an array of match locations. Each location has the matched text, captured groups from the regular expression, and the starting location of the text in the file.
 
