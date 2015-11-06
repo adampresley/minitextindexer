@@ -39,7 +39,7 @@ func main() {
 	log.Info("Creating index...")
 
 	catalog := catalog.NewCatalog(log, configuration)
-	catalog.Index()
+	go catalog.Index()
 
 	appContext := &middleware.AppContext{
 		Catalog: catalog,
