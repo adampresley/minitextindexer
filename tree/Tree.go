@@ -3,6 +3,7 @@ package tree
 import (
 	"encoding/json"
 	"strings"
+	"sync"
 
 	"github.com/adampresley/minitextindexer/document"
 )
@@ -96,17 +97,15 @@ func (tree *Tree) findLast(term *document.Term) *Node {
 	return previousNode
 }
 
-func inOrder(node *Node, nodeChannel chan *Node, searchTerm string) {
+func inOrder(node *Node, nodeChannel chan *Node, searchTerm string, waitGroup *sync.WaitGroup) {
 	if node == nil {
 		return
 	}
 
-	if strings.Contains(strings.ToLower(node.Value.Key), strings.ToLower(searchTerm)) {
-		nodeChannel <- node
-	}
-
-	inOrder(node.Left, nodeChannel, searchTerm)
-	inOrder(node.Right, nodeChannel, searchTerm)
+	waitGroup.Add(1)
+	nodeChannel <- node
+	inOrder(node.Left, nodeChannel, searchTerm, waitGroup)
+	inOrder(node.Right, nodeChannel, searchTerm, waitGroup)
 }
 
 /*
@@ -124,13 +123,18 @@ Search returns a set of nodes who's values contain a search term
 func (tree *Tree) Search(searchTerm string) []*Node {
 	nodeChannel := make(chan *Node, 100)
 	doneChannel := make(chan bool)
+	waitGroup := &sync.WaitGroup{}
 	var results []*Node
 
 	go func(nodeChannel chan *Node) {
 		for {
 			select {
 			case node := <-nodeChannel:
-				results = append(results, node)
+				if strings.Contains(strings.ToLower(node.Value.Key), strings.ToLower(searchTerm)) {
+					results = append(results, node)
+				}
+
+				waitGroup.Done()
 
 			case <-doneChannel:
 				break
@@ -138,7 +142,8 @@ func (tree *Tree) Search(searchTerm string) []*Node {
 		}
 	}(nodeChannel)
 
-	inOrder(tree.Root, nodeChannel, searchTerm)
+	inOrder(tree.Root, nodeChannel, searchTerm, waitGroup)
+	waitGroup.Wait()
 	doneChannel <- true
 
 	return results
